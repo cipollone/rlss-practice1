@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "python-template"
+name = "rlss-practice1"
 version = "0.1.0"
-description = "A template for Python projects"
+description = ""
 authors = ["Roberto Cipollone <cipollone.rt@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8.1"
+python = "^3.9"
+ipython = "^8.11.0"
 
 [tool.poetry.dev-dependencies]
-ipython = "^8.11.0"
 pytest = "^7.2.2"
 mypy = "^1.1.1"
 isort = "^5.12.0"
@@ -16,9 +16,6 @@ black = "^23.1.0"
 jedi = "^0.18.2"
 flake8 = "^6.0.0"
 tox = "^4.4.6"
-
-[tool.isort]
-profile = "black"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

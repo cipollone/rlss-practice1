@@ -1,16 +1,5 @@
-# Python template
+# RLSS practical session 1
 
-A template for starting Python 3 projects.
-
-## Use
-
-When you use this repo as template, you have to chage:
-
-- This README
-- The LICENSE
-- Package name and info
-- Add dependencies
-- Personalize editor infos (e.g. python path in .vim/)
 
 
 ## Install
