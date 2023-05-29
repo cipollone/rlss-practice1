@@ -3,6 +3,7 @@
 
 # Development
 .python-version
+.venv/
 
 # Python
 __pycache__/
