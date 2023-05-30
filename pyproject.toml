@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "practice1"
+name = "rlss-practice1"
 version = "0.1.0"
 description = ""
 authors = ["Roberto Cipollone <cipollone.rt@gmail.com>"]
