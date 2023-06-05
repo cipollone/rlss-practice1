@@ -21,5 +21,4 @@ Create and activate a virtual environment, then install the package as:
 
 ## Runing
 
-Enter the virtual environment with `poetry shell` or `source <path>/bin/activate`,
-depending on the installation method.
+When opening a new shell, enter the Python virtual environment with `poetry shell` or `source <path>/bin/activate`, depending on the installation method.
