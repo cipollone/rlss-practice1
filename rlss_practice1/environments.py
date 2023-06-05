@@ -5,11 +5,26 @@ import time
 from typing import SupportsFloat, cast
 
 import gymnasium as gym
+import numpy as np
 from minigrid import envs
+from minigrid.minigrid_env import MiniGridEnv
 
 
 class Empty(gym.Wrapper):
-    """An Empty minigrid environment with explicit transition and reward functions."""
+    """An Empty minigrid environment with explicit transition and reward functions.
+
+    The agent is rewarded upon reaching the goal location.
+    For the observation space see `DecodeObservation`.
+
+    Action space:
+
+    | Num | Name         | Action       |
+    |-----|--------------|--------------|
+    | 0   | left         | Turn left    |
+    | 1   | right        | Turn right   |
+    | 2   | forward      | Move forward |
+
+    """
 
     def __init__(self, seed: int, failure=0.0, **kwargs):
         """Initialize.
@@ -20,10 +35,55 @@ class Empty(gym.Wrapper):
         agent_start_pos: tuple with coordinates
         agent_start_dir: north or..
         """
-        env = envs.EmptyEnv(**kwargs)
-        env.action_space = gym.spaces.Discrete(3)
-        env = FailProbability(env, failure=failure, seed=seed)
+        self.minigrid = envs.EmptyEnv(highlight=False, **kwargs)
+        self.minigrid.action_space = gym.spaces.Discrete(3)
+        env: gym.Env = FailProbability(self.minigrid, failure=failure, seed=seed)
+        env = DecodeObservation(env=env)
+        env = BinaryReward(env=env)
         super().__init__(env=env)
+
+
+class DecodeObservation(gym.ObservationWrapper):
+    """Decoded observation for minigrid.
+
+    The observation is composed of agent 2D position and orientation.
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+        assert isinstance(self.unwrapped, MiniGridEnv)
+        self.minigrid = self.unwrapped
+
+    def observation(self, observation: dict) -> np.ndarray:
+        """Transform observation."""
+        obs = (*self.minigrid.agent_pos, self.minigrid.agent_dir)
+        return np.array(obs, dtype=np.int32)
+
+
+class BinaryReward(gym.RewardWrapper):
+    """1 if agent is at minigrid goal, 0 otherwise."""
+
+    def __init__(self, env):
+        super().__init__(env)
+        assert isinstance(self.unwrapped, MiniGridEnv)
+        self.minigrid = self.unwrapped
+        self._was_at_goal = False
+
+    def reset(self, **kwargs):
+        """Reset."""
+        self._was_at_goal = False
+        return super().reset(**kwargs)
+
+    def reward(self, reward: SupportsFloat) -> float:
+        """Compute reward."""
+        current_cell = self.minigrid.grid.get(*self.minigrid.agent_pos)
+        if current_cell is not None:
+            at_goal = current_cell.type == "goal"
+        else:
+            at_goal = False
+        rew = 1.0 if at_goal and not self._was_at_goal else 0.0
+        self._was_at_goal = at_goal
+        return rew
 
 
 class FailProbability(gym.Wrapper):
@@ -89,9 +149,11 @@ def test(env: gym.Env, interactive: bool = False):
 
             # Reset
             if terminated or truncated:
+                print("Reset")
                 observation, info = env.reset()
                 terminated = False
                 truncated = False
+                reward = 0.0
                 log()
     finally:
         env.close()
