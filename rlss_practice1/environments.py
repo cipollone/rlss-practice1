@@ -17,7 +17,6 @@ class Empty(gym.Wrapper):
     """An Empty minigrid environment with explicit transition and reward functions.
 
     The agent is rewarded upon reaching the goal location.
-    For the observation space see `DecodeObservation`.
 
     Action space:
 
@@ -27,9 +26,17 @@ class Empty(gym.Wrapper):
     | 1   | right        | Turn right   |
     | 2   | forward      | Move forward |
 
+    Observation space:
+
+    |-----|--------------------|
+    | x   | x coordinate       |
+    | y   | y coordinate       |
+    | dir | cardinal direction |
+
+    The transition function is stored in `T`,
+    where `T[state][action][next_state]` is the transition probability.
+    The reward function is `R`. `R[state][action]` contains a reward.
     """
-    # TODO: update observation space and transition matrices in docstring
-    # TODO: action failure is inconsistent with the definition of categorical function
 
     StateT = tuple[int, int, int]
     ActionT = int
@@ -65,25 +72,52 @@ class Empty(gym.Wrapper):
         self.reset()                             # This creates a fixed grid and goal
         self._grid = self.minigrid.grid.encode() # Just to check that the grid never changes
         self._compute_model()
+        self._pretty_print_T()
+
+    def _is_valid_position(self, i: int, j: int) -> bool:
+        """Testing whether a coordinate is a valid location."""
+        if i < 0: return False
+        if j < 0: return False
+        if i >= self.minigrid.width: return False
+        if j >= self.minigrid.height: return False
+        cell = self.minigrid.grid.get(i, j)
+        if cell is not None and not cell.can_overlap(): return False
+        return True
+
+    def _state_step(self, state: StateT, action: ActionT) -> StateT:
+        """Utility to move states one step forward, no side effect."""
+        x, y, direction = state
+
+        # Default transition to the sink failure state
+        if not self._is_valid_position(x, y):
+            return (0, 0, 0)
+
+        # Transition left
+        if action == self.minigrid.actions.left:
+            direction -= 1
+            if direction < 0:
+                direction += 4
+            return x, y, direction
+
+        # Transition right
+        elif action == self.minigrid.actions.right:
+            direction = (direction + 1) % 4
+            return x, y, direction
+
+        # Transition forward
+        elif action == self.minigrid.actions.forward:
+            fwd_pos = np.array((x, y)) + DIR_TO_VEC[direction]
+            if self._is_valid_position(*fwd_pos):
+                return (fwd_pos[0], fwd_pos[1], direction)
+            else:
+                return state
+        # Error
+        else:
+            assert False, "Invalid action"
+
 
     def _compute_model(self):
         """Compute explicit transition and reward functions for this environment."""
-        # Creating categorical distributions
-        def categorical(state, probability: float):
-            success_p = probability
-            fail_p = (1 - probability) / len(self.states)
-            return {s: success_p if s == state else fail_p for s in self.states}
-        
-        # Testing whether it can move there
-        def can_move_there(i: int, j: int) -> bool:
-            if i < 0: return False
-            if j < 0: return False
-            if i >= self.minigrid.width: return False
-            if j >= self.minigrid.height: return False
-            cell = self.minigrid.grid.get(i, j)
-            if cell is not None and not cell.can_overlap(): return False
-            return True
-
         # Compute matrices
         T: dict = defaultdict(lambda: defaultdict())
         R: dict = defaultdict(lambda: defaultdict())
@@ -97,31 +131,13 @@ class Empty(gym.Wrapper):
                 else:
                     R[state][action] = 0.0
 
-                # Transition left
-                if action == self.minigrid.actions.left:
-                    direction = state[2]
-                    direction -= 1
-                    if direction < 0:
-                        direction += 4
-                    T[state][action] = categorical((state[0], state[1], direction), 1 - self.failure)
-
-                # Transition right
-                elif action == self.minigrid.actions.right:
-                    direction = state[2]
-                    direction = (direction + 1) % 4
-                    T[state][action] = categorical((state[0], state[1], direction), 1 - self.failure)
-
-                # Transition forward
-                elif action == self.minigrid.actions.forward:
-                    fwd_pos = np.array((state[0], state[1])) + DIR_TO_VEC[state[2]]
-                    if can_move_there(*fwd_pos):
-                        new_state = (fwd_pos[0], fwd_pos[1], state[2])
-                    else:
-                        new_state = state
-                    T[state][action] = categorical(new_state, 1 - self.failure)
-
-                else:
-                    assert False, "Invalid action"
+                # Transition
+                success_state = self._state_step(state, action)
+                failure_states = [self._state_step(state, a) for a in self.actions if a != action]
+                T[state][action] = {s: 1 - self.failure if s == success_state
+                    else self.failure / len(failure_states) if s in failure_states
+                    else 0.0
+                    for s in self.states}
 
             T[state] = dict(T[state])
             R[state] = dict(R[state])
@@ -138,12 +154,13 @@ class Empty(gym.Wrapper):
         """Prints the positive components of the transition function."""
         print("Transition function -- self.T")
         for state in self.states:
-            print(f"State {state}")
-            for action in self.actions:
-                print(f"  action {action}")
-                for state2 in self.states:
-                    if self.T[state][action][state2] > 0.0:
-                        print(f"    next state {state2}: {self.T[state][action][state2]}")
+            if self._is_valid_position(state[0], state[1]):
+                print(f"State {state}")
+                for action in self.actions:
+                    print(f"  action {action}")
+                    for state2 in self.states:
+                        if self.T[state][action][state2] > 0.0:
+                            print(f"    next state {state2}: {self.T[state][action][state2]}")
 
 
 class DecodeObservation(gym.ObservationWrapper):
@@ -265,5 +282,5 @@ def test(env: gym.Env, interactive: bool = False):
 
 
 if __name__ == '__main__':
-    env = Empty(seed=19823283, failure=0.0, size=5, agent_start_dir=0, agent_start_pos=(1,1), render_mode='human')
+    env = Empty(seed=19823283, failure=0.2, size=5, agent_start_dir=0, agent_start_pos=(1,1), render_mode='human')
     test(env, interactive=False)
