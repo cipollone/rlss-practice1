@@ -1,9 +1,24 @@
 # RLSS practical session 1
 
-Installation and usage instructions for the first practical session.
+This repository contains [Gymnasium](https://github.com/Farama-Foundation/Gymnasium)
+environments that we will use during the first practical session.
+This is a configured [minigrid](https://github.com/Farama-Foundation/MiniGrid) environment with explicit transition and reward functions.
 
 
-## Intallation
+## Use
+
+Install this package with pip as:
+
+    pip install git+https://github.com/cipollone/rlss-practice1.git
+
+Then, import the package and instantiate your environment of choice as:
+
+    from rlss_practice1.environments import Room
+    env = Room(seed=seed, failure=0.1, size=5)
+
+For further documentation, see each environment docstring with `help()`.
+
+## Development
 
 Make sure to have a working Python 3.9 or 3.10 installation by running `python --version`.
 These versions is available in most Linux distributions via the default package manager.
@@ -18,7 +33,5 @@ Create and activate a virtual environment, then install the package as:
     source <path>/bin/activate
     pip install .
 
-
-## Runing
-
-When opening a new shell, enter the Python virtual environment with `poetry shell` or `source <path>/bin/activate`, depending on the installation method.
+To run parts of this package, it is necessary to enter this virtual environment for each new shell.
+Depending on the installation method, this is `poetry shell` or `source <path>/bin/activate`.

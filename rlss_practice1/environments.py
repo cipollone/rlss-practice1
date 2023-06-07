@@ -13,7 +13,7 @@ from minigrid.core.constants import DIR_TO_VEC
 from minigrid.minigrid_env import MiniGridEnv
 
 
-class Empty(gym.Wrapper):
+class Room(gym.Wrapper):
     """An Empty minigrid environment with explicit transition and reward functions.
 
     The agent is rewarded upon reaching the goal location.
@@ -72,7 +72,6 @@ class Empty(gym.Wrapper):
         self.reset()                             # This creates a fixed grid and goal
         self._grid = self.minigrid.grid.encode() # Just to check that the grid never changes
         self._compute_model()
-        self._pretty_print_T()
 
     def _is_valid_position(self, i: int, j: int) -> bool:
         """Testing whether a coordinate is a valid location."""
@@ -282,5 +281,5 @@ def test(env: gym.Env, interactive: bool = False):
 
 
 if __name__ == '__main__':
-    env = Empty(seed=19823283, failure=0.2, size=5, agent_start_dir=0, agent_start_pos=(1,1), render_mode='human')
+    env = Room(seed=19823283, failure=0.2, size=5, agent_start_dir=0, agent_start_pos=(1,1), render_mode='human')
     test(env, interactive=False)
