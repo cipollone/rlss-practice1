@@ -28,10 +28,10 @@ class Room(gym.Wrapper):
 
     Observation space:
 
-    |-----|--------------------|
-    | x   | x coordinate       |
-    | y   | y coordinate       |
-    | dir | cardinal direction |
+    |-----|-------------------------|
+    | x   | x coordinate            |
+    | y   | y coordinate (downward) |
+    | dir | cardinal direction      |
 
     The transition function is stored in `T`,
     where `T[state][action][next_state]` is the transition probability.
