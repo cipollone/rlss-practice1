@@ -7,7 +7,7 @@ from typing import SupportsFloat, cast
 import gymnasium as gym
 import numpy as np
 from gymnasium.wrappers.record_video import RecordVideo
-from IPython.core.display import display_html
+from IPython.core.display import HTML, display
 from minigrid.minigrid_env import MiniGridEnv
 
 
@@ -92,4 +92,4 @@ class Renderer(gym.Wrapper):
     def play(self):
         video = open("/content/video-out/rl-video-step-0.mp4", "rb").read()
         data = "data:video/mp4;base64," + b64encode(video).decode()
-        display_html(('<video  controls autoplay> <source src="%s" type="video/mp4"> </video>' % data))
+        display(HTML('<video  controls autoplay> <source src="%s" type="video/mp4"> </video>' % data))
