@@ -1,10 +1,13 @@
 """Various utilities for Environments, mostly in the form of gym.Wrapper."""
 
 import random
+from base64 import b64encode
 from typing import SupportsFloat, cast
 
 import gymnasium as gym
 import numpy as np
+from gymnasium.wrappers.record_video import RecordVideo
+from IPython.core.display import display_html
 from minigrid.minigrid_env import MiniGridEnv
 
 
