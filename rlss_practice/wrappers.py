@@ -71,3 +71,22 @@ class FailProbability(gym.Wrapper):
         if self._rng.random() < self.failure:
             action = self._rng.randint(0, self._n - 1)
         return self.env.step(action)
+
+
+class Renderer(gym.Wrapper):
+    """Record a video and show it back; for Colab notebooks only."""
+
+    def __init__(self, env):
+        self.path = "/content/video-out/rl-video-step-0.mp4"
+        super().__init__(
+            RecordVideo(
+                env=env,
+                video_folder="/content/video-out",
+                step_trigger=lambda step: True,
+            )
+        )
+    
+    def play(self):
+        video = open("/content/video-out/rl-video-step-0.mp4", "rb").read()
+        data = "data:video/mp4;base64," + b64encode(video).decode()
+        display_html(('<video  controls autoplay> <source src="%s" type="video/mp4"> </video>' % data))
