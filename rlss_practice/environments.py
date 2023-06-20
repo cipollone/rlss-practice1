@@ -62,7 +62,7 @@ class MinigridBase(gym.Wrapper):
         env: gym.Env = FailProbability(self.minigrid, failure=failure, seed=seed)
         env = DecodeObservation(env=env)
         env = BinaryReward(env=env)
-        env = TimeLimit(env=env, max_episode_steps=30)
+        env = TimeLimit(env=env, max_episode_steps=50)
         super().__init__(env=env)
 
         # The grid must be generated once
@@ -203,7 +203,7 @@ class MinigridBase(gym.Wrapper):
 
     def reset(self, **kwargs):
         """Environment reset."""
-        ret = super().reset(seed=self.seed, **kwargs)
+        ret = super().reset(**kwargs)
         assert (
             self.minigrid.grid.encode() == self._grid
         ).all(), "The grid changed: this shouldn't happen"
@@ -235,7 +235,7 @@ class Room(MinigridBase):
         agent_start_dir: north or..
         size: room side length
         """
-        minigrid = envs.EmptyEnv(**kwargs)
+        minigrid = envs.EmptyEnv(render_mode="rgb_array", **kwargs)
         super().__init__(minigrid=minigrid, seed=91273192, failure=failure)
 
 
@@ -251,7 +251,7 @@ class Rooms(MinigridBase):
         """
         # Initialize
         minigrid = envs.MultiRoomEnv(
-            minNumRooms=rooms, maxNumRooms=rooms, maxRoomSize=size, screen_size=1500, **kwargs
+            render_mode="rgb_array", minNumRooms=rooms, maxNumRooms=rooms, maxRoomSize=size, screen_size=1500, **kwargs
         )
         super().__init__(minigrid=minigrid, seed=91273187, failure=failure)
 
