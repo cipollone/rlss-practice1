@@ -80,7 +80,7 @@ class FailProbability(gym.Wrapper):
 class Renderer(gym.Wrapper):
     """Record a video and show it back in Jupyter notebook."""
 
-    def __init__(self, env: gym.Env, path: Optional[Union[str, Path]]):
+    def __init__(self, env: gym.Env, path: Optional[Union[str, Path]] = None):
         """Initialize.
 
         env: environments to render.
