@@ -74,6 +74,8 @@ class MinigridBase(gym.Wrapper):
         def _reset(self2: MiniGridEnv, *, seed=None, options=None):
             self2.agent_pos = self._initial_pos
             self2.agent_dir = self._initial_dir
+            self2.carrying = None
+            self2.step_count = 0
             return minigrid.gen_obs(), {}
 
         minigrid.reset = _reset.__get__(minigrid)
@@ -310,6 +312,7 @@ def test(env: gym.Env, interactive: bool = False):
 
             # Reset
             if terminated or truncated:
+                import pdb; pdb.set_trace()
                 print("Reset")
                 observation, info = env.reset()
                 terminated = False
@@ -321,10 +324,10 @@ def test(env: gym.Env, interactive: bool = False):
 
 
 if __name__ == "__main__":
-    env = Rooms(
-        failure=0.1,
-        rooms=3,
-        size=6,
-        render_mode="human",
+    env = Room(
+        failure=0.0,
+        agent_start_pos=(1, 1),
+        agent_start_dir=0,
+        size=5,
     )
     test(env, interactive=False)
