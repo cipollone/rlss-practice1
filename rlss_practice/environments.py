@@ -62,16 +62,21 @@ class MinigridBase(gym.Wrapper):
         env: gym.Env = FailProbability(self.minigrid, failure=failure, seed=seed)
         env = DecodeObservation(env=env)
         env = BinaryReward(env=env)
-        env = TimeLimit(env=env, max_episode_steps=40)
+        env = TimeLimit(env=env, max_episode_steps=30)
         super().__init__(env=env)
 
         # The grid must be generated once
         env.reset(seed=self.seed)  # this creates the grid
+        self._initial_pos = minigrid.agent_pos
+        self._initial_dir = minigrid.agent_dir
 
-        def _reset(*, seed=None, options=None):
+        # Do not generate it afterwards, only restore position
+        def _reset(self2: MiniGridEnv, *, seed=None, options=None):
+            self2.agent_pos = self._initial_pos
+            self2.agent_dir = self._initial_dir
             return minigrid.gen_obs(), {}
 
-        minigrid.reset = _reset
+        minigrid.reset = _reset.__get__(minigrid)
         self._grid = (
             self.minigrid.grid.encode()
         )  # Just to check that the grid never changes
