@@ -1,7 +1,9 @@
 """Solutions of the first practical session."""
 
-from rlss_practice.environments import MinigridBase
 import numpy as np
+from gymnasium import Env
+
+from rlss_practice.environments import MinigridBase
 
 
 class PolicyIteration1:
