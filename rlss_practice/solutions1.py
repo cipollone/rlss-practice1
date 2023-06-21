@@ -137,7 +137,7 @@ class PolicyIteration2(PolicyIteration1):
     while max_value_gap > self.theta:
       max_value_gap = 0
 
-      for state in env.states:
+      for state in self.env.states:
         prev_statevalue = self.V[state]
         self.V[state] = self.get_expected_update(state, self.policy[state])
         max_value_gap = max(max_value_gap, np.abs(prev_statevalue - self.V[state]))
