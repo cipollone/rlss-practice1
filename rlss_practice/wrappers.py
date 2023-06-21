@@ -33,30 +33,33 @@ class DecodeObservation(gym.ObservationWrapper):
         return np.array(obs, dtype=np.int32)
 
 
-class BinaryReward(gym.RewardWrapper):
-    """1 if agent is at minigrid goal, 0 otherwise."""
+class BinaryReward(gym.Wrapper):
+    """1 if agent is at minigrid goal, 0 otherwise; also, do not terminate trajecotories."""
 
     def __init__(self, env):
         super().__init__(env)
         assert isinstance(self.unwrapped, MiniGridEnv)
         self.minigrid = self.unwrapped
-        self._was_at_goal = False
 
-    def reset(self, **kwargs):
-        """Reset."""
-        self._was_at_goal = False
-        return super().reset(**kwargs)
+    def reset(self, *, seed=None, options=None):
+        observation, info = super().reset(seed=seed, options=options)
+        self._last_pos = self.minigrid.agent_pos
+        return observation, info
 
-    def reward(self, reward: SupportsFloat) -> float:
-        """Compute reward."""
-        current_cell = self.minigrid.grid.get(*self.minigrid.agent_pos)
+    def step(self, action):
+        """Gym step with modified reward and termination"""
+        observation, reward, terminated, truncated, info = super().step(action)
+
+        # Were we at goal?
+        current_cell = self.minigrid.grid.get(*self._last_pos)
+        self._last_pos = self.minigrid.agent_pos
         if current_cell is not None:
             at_goal = current_cell.type == "goal"
         else:
             at_goal = False
-        rew = 1.0 if at_goal and not self._was_at_goal else 0.0
-        self._was_at_goal = at_goal
-        return rew
+        reward = 1.0 if at_goal else 0.0
+
+        return observation, reward, False, truncated, info
 
 
 class FailProbability(gym.Wrapper):

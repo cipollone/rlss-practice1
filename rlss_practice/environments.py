@@ -312,8 +312,6 @@ def test(env: gym.Env, interactive: bool = False):
 
             # Reset
             if terminated or truncated:
-                import pdb; pdb.set_trace()
-                print("Reset")
                 observation, info = env.reset()
                 terminated = False
                 truncated = False
@@ -330,4 +328,4 @@ if __name__ == "__main__":
         agent_start_dir=0,
         size=5,
     )
-    test(env, interactive=False)
+    test(env, interactive=True)
