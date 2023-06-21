@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional, SupportsFloat, Union, cast
 
 import gymnasium as gym
+import os
 import numpy as np
 from gymnasium.wrappers.record_video import RecordVideo
 from IPython.core.display import HTML, display
@@ -96,12 +97,18 @@ class Renderer(gym.Wrapper):
             )
         )
     
-    def play(self, step: int = 0):
+    def play(self, step: Optional[int] = None):
         """Reproduce a video in Jupyter.
 
         step: the video step ID (see the output of the video recurder)
-            0 by default
+            the last video by default
         """
-        video = open(str(self._video_path_format).format(step), "rb").read()
+        if step is None:
+            videos = self._video_path_format.parent.glob("*.mp4")
+            video_path = max(videos, key=os.path.getctime)
+        else:
+            video_path = str(self._video_path_format).format(step)
+
+        video = open(video_path, "rb").read()
         data = "data:video/mp4;base64," + b64encode(video).decode()
         display(HTML('<video  controls autoplay> <source src="%s" type="video/mp4"> </video>' % data))
