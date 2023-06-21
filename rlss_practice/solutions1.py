@@ -30,14 +30,18 @@ class PolicyIteration1:
     self.V_logs = []
 
 
+  def _evaluate_policy(self):
+    A = np.eye(self.n_states, self.n_states) - self.gamma * self.get_p_pi()
+    b = self.get_r_pi()
+    return np.linalg.solve(A, b)
+
+
   def evaluate_policy(self):
     """
     Given π_{k} compute V^{π_{k}} = (I - \gamma p_{π_{k}})^{-1}r_{π_{k}}.
     """
     # Value
-    A = np.eye(self.n_states, self.n_states) - self.gamma * self.get_p_pi()
-    b = self.get_r_pi()
-    V_array = np.linalg.solve(A, b)
+    V_array = self._evaluate_policy()
 
     self.V = {state: V_array[i].item() for i, state in enumerate(self.states)}
     self.V_logs.append(self.V.copy())
@@ -127,12 +131,7 @@ class PolicyIteration2(PolicyIteration1):
     self.V = {state: 0.0 for state in env.states}
 
 
-  def evaluate_policy(self):
-    """
-    Starting from previous value estimate V_{k-1}
-    estimate value of policy π_{k} by recursively applying
-    the Bellman operator of the policy T^π_{k} to V_{k-1} until update is stable.
-    """
+  def _evaluate_policy(self):
     max_value_gap = np.inf
 
     while max_value_gap > self.theta:
@@ -143,6 +142,14 @@ class PolicyIteration2(PolicyIteration1):
         self.V[state] = self.get_expected_update(state, self.policy[state])
         max_value_gap = max(max_value_gap, np.abs(prev_statevalue - self.V[state]))
 
+
+  def evaluate_policy(self):
+    """
+    Starting from previous value estimate V_{k-1}
+    estimate value of policy π_{k} by recursively applying
+    the Bellman operator of the policy T^π_{k} to V_{k-1} until update is stable.
+    """
+    self._evaluate_policy()
     self.V_logs.append(self.V.copy())
 
 
@@ -170,7 +177,11 @@ class ValueIteration:
 
     self.policy = {state: 0 for state in self.env.states}
     self.V = {state: 0 for state in self.env.states}
-
+  
+  def _evaluate_policy(self):
+    for k in range(self.K):
+      for state in self.env.states:
+        self.V[state] = max(map(lambda action: self.get_expected_update(state, action), self.env.actions))
 
   def evaluate_policy(self):
     """
@@ -178,11 +189,7 @@ class ValueIteration:
     estimate the V^π* by recursively applying
     the Bellman optimality operator of the policy T^* to V_0 for K steps.
     """
-
-    for k in range(self.K):
-      for state in self.env.states:
-        self.V[state] = max(map(lambda action: self.get_expected_update(state, action), self.env.actions))
-
+    self._evaluate_policy()
     self.V_logs.append(self.V.copy())
 
 
