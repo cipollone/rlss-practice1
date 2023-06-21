@@ -97,8 +97,14 @@ class Renderer(gym.Wrapper):
                 env=env,
                 video_folder=str(self._video_dir),
                 step_trigger=lambda step: True,
+                disable_logger=True,
             )
         )
+
+    def all_videos(self):
+        """Prints all video paths."""
+        videos = self._video_path_format.parent.glob("*.mp4")
+        print(videos)
     
     def play(self, step: Optional[int] = None):
         """Reproduce a video in Jupyter.
