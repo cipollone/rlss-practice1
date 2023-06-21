@@ -105,7 +105,7 @@ class Renderer(gym.Wrapper):
         """
         if step is None:
             videos = self._video_path_format.parent.glob("*.mp4")
-            video_path = max(videos, key=os.path.getctime)
+            video_path = max(videos, key=os.path.getmtime)
         else:
             video_path = str(self._video_path_format).format(step)
 
