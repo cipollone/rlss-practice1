@@ -98,6 +98,12 @@ class MinigridBase(gym.Wrapper):
         # Explicit transition and rewards functions
         self._compute_model()
 
+    def step(self, action: int):
+        if action < 0 or action > 2:
+            raise RuntimeError(f"Illegal action {action}. The action space is {self.action_space}")
+
+        return super().step(action)
+
     def __str__(self):
         """Simplified to string."""
         OBJECT_TO_STR = {
